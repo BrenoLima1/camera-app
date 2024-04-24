@@ -3,6 +3,7 @@ import {TouchableOpacity, SafeAreaView, StyleSheet, Text, View, Modal, Image } f
 import { Camera } from 'expo-camera';
 import { FontAwesome, FontAwesome6 } from '@expo/vector-icons';
 import * as MediaLibrary from 'expo-media-library';
+import { Alert } from 'react-native';
 
 export default function App() {
 
@@ -21,7 +22,7 @@ export default function App() {
     (async () => {
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status !== 'granted') {
-        alert('Sorry, we need media library permissions to make this work!');
+        alert('Perdão, precisamos de acesso à galeria para salvar esta imagem!');
   }})();
 
   }, []);
@@ -45,18 +46,34 @@ export default function App() {
   }
 
   async function savePicture() {
-    // save to gallery
-    try{
-        await MediaLibrary.saveToLibraryAsync(capturesPhoto)
-        alert('Foto salva com sucesso');
-    }catch(err){
-        alert('Erro ao salvar a foto: ' + err.message)
-        console.log('Erro ao salvar a foto: ' + err.message)
-    }finally{
-        setOpen(false);
-        setCapturedPhoto(null);
-    }
+      // save to gallery
+      Alert.alert(
+          "Salvar foto",
+          "Deseja salvar a foto?",
+          [
+              {
+                  text: "Cancelar",
+                  style: "cancel"
+              },
+              {
+                  text: "OK",
+                  onPress: async () => {
+                      try{
+                          await MediaLibrary.saveToLibraryAsync(capturesPhoto)
+                          alert('Foto salva com sucesso!');
+                      }catch(err){
+                          alert('Erro ao salvar a foto: ' + err.message)
+                          console.log('Erro ao salvar a foto: ' + err.message)
+                      }finally{
+                          setOpen(false);
+                          setCapturedPhoto(null);
+                      }
+                  }
+              }
+          ]
+      );
   }
+
 
   return (
     <SafeAreaView style={styles.container}>
