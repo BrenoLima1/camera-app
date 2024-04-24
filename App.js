@@ -2,6 +2,7 @@ import React, {useState, useEffect, useRef} from 'react';
 import {TouchableOpacity, Button, SafeAreaView, StyleSheet, Text, View, Modal, Image } from 'react-native';
 import { Camera } from 'expo-camera';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
+import * as MediaLibrary from 'expo-media-library';
 
 export default function App() {
 
@@ -16,6 +17,13 @@ export default function App() {
       const {status} = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === 'granted' ? true : false);
     })();
+
+    (async () => {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Sorry, we need media library permissions to make this work!');
+  }})();
+
   }, []);
 
   if(hasPermission === null){
@@ -33,6 +41,20 @@ export default function App() {
       setCapturedPhoto(data.uri);
       setOpen(true);
       console.log(data);
+    }
+  }
+
+  async function savePicture() {
+    // save to gallery
+    try{
+        await MediaLibrary.saveToLibraryAsync(capturesPhoto)
+        alert('Foto salva com sucesso');
+    }catch(err){
+        alert('Erro ao salvar a foto: ' + err.message)
+        console.log('Erro ao salvar a foto: ' + err.message)
+    }finally{
+        setOpen(false);
+        setCapturedPhoto(null);
     }
   }
 
@@ -74,11 +96,17 @@ export default function App() {
         >
           <View style={{flex: 1, justifyContent: 'center', alignItems:'center', margin: 20}}>
 
+            <View style = {{margin: 10, flexDirection: 'row'}}>
             <TouchableOpacity style={{margin: 10}} onPress={ ()=> setOpen(false)}>
               <FontAwesome name='window-close' size={50} color='#FF0000'/>
             </TouchableOpacity>
 
-            <Image source={{uri: capturesPhoto}} style={{width: '100%', height: 300, borderRadius: 20}} />
+            <TouchableOpacity style={{margin: 10}} onPress={ savePicture}>
+              <FontAwesome name='upload' size={50} color='#121212'/>
+            </TouchableOpacity>
+            </View>
+
+            <Image source={{uri: capturesPhoto}} style={{width: '100%', height: 450, borderRadius: 20}} />
           </View>
         </Modal>
 
@@ -101,6 +129,6 @@ const styles = StyleSheet.create({
     margin: 20,
     borderRadius: 10,
     height: 50,
-    width: 50
+    width: '80%'
   }
 });
