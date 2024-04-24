@@ -1,40 +1,89 @@
-import { Camera, CameraType } from 'expo-camera';
-import { useState } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, {useState, useEffect, useRef} from 'react';
+import {TouchableOpacity, Button, SafeAreaView, StyleSheet, Text, View, Modal, Image } from 'react-native';
+import { Camera } from 'expo-camera';
+import { Ionicons, FontAwesome } from '@expo/vector-icons';
 
 export default function App() {
-  const [type, setType] = useState(CameraType.back);
-  const [permission, requestPermission] = Camera.useCameraPermissions();
 
-  if (!permission) {
-    // Camera permissions are still loading
-    return <View />;
+  const camRef = useRef(null);
+  const [type, setType] = useState(Camera.Constants.Type.back);
+  const [hasPermission, setHasPermission] = useState(null);
+  const [capturesPhoto, setCapturedPhoto] = useState(null);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const {status} = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === 'granted' ? true : false);
+    })();
+  }, []);
+
+  if(hasPermission === null){
+    return <View/>
   }
 
-  if (!permission.granted) {
-    // Camera permissions are not granted yet
-    return (
-      <View style={styles.container}>
-        <Text style={{ textAlign: 'center' }}>We need your permission to show the camera</Text>
-        <Button onPress={requestPermission} title="grant permission" />
-      </View>
-    );
+
+  if(hasPermission === false){
+    return <Text>Acesso negado!</Text>
   }
 
-  function toggleCameraType() {
-    setType(current => (current === CameraType.back ? CameraType.front : CameraType.back));
+  async function takePicture() {
+    if(camRef){
+      const data = await camRef.current.takePictureAsync();
+      setCapturedPhoto(data.uri);
+      setOpen(true);
+      console.log(data);
+    }
   }
 
   return (
-    <View style={styles.container}>
-      <Camera style={styles.camera} type={type}>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={toggleCameraType}>
-            <Text style={styles.text}>Flip Camera</Text>
+    <SafeAreaView style={styles.container}>
+      <Camera style={{flex:1}}
+      type={type}
+      ref={camRef}
+      >
+        <View style = {{flex: 1, backgroundColor: 'transparent', flexDirection: 'row'}}>
+          <TouchableOpacity
+          style = {{
+            position: 'absolute',
+            bottom: 20,
+            left: 20,
+          }}
+          onPress={ () => {
+            setType(
+              type === Camera.Constants.Type.back
+              ? Camera.Constants.Type.front
+              : Camera.Constants.Type.back
+            );
+
+          } }
+          >
+            <Text style = {{fontSize: 20, marginBottom: 13, color: '#fff'}}>Trocar</Text>
           </TouchableOpacity>
         </View>
       </Camera>
-    </View>
+      <TouchableOpacity style = {styles.button} onPress={takePicture}>
+          <FontAwesome name='camera' size={23} color = '#fff'></FontAwesome>
+      </TouchableOpacity>
+
+      {capturesPhoto &&
+        <Modal
+        animationType='slide'
+        transparent= {false}
+        visible= {open}
+        >
+          <View style={{flex: 1, justifyContent: 'center', alignItems:'center', margin: 20}}>
+
+            <TouchableOpacity style={{margin: 10}} onPress={ ()=> setOpen(false)}>
+              <FontAwesome name='window-close' size={50} color='#FF0000'/>
+            </TouchableOpacity>
+
+            <Image source={{uri: capturesPhoto}} style={{width: '100%', height: 300, borderRadius: 20}} />
+          </View>
+        </Modal>
+
+      }
+    </SafeAreaView>
   );
 }
 
@@ -43,23 +92,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
-  camera: {
-    flex: 1,
-  },
-  buttonContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    backgroundColor: 'transparent',
-    margin: 64,
-  },
   button: {
-    flex: 1,
-    alignSelf: 'flex-end',
+    alignSelf: "center",
     alignItems: 'center',
-  },
-  text: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-  },
+    backgroundColor: "#121212",
+    justifyContent: 'center',
+    borderRadius: 10,
+    margin: 20,
+    borderRadius: 10,
+    height: 50,
+    width: 50
+  }
 });
