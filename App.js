@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {TouchableOpacity, Button, SafeAreaView, StyleSheet, Text, View, Modal, Image } from 'react-native';
 import { Camera } from 'expo-camera';
-import { Ionicons, FontAwesome } from '@expo/vector-icons';
+import { Ionicons, FontAwesome, FontAwesome6 } from '@expo/vector-icons';
 import * as MediaLibrary from 'expo-media-library';
 
 export default function App() {
@@ -80,7 +80,7 @@ export default function App() {
 
           } }
           >
-            <Text style = {{fontSize: 20, marginBottom: 13, color: '#fff'}}>Trocar</Text>
+            <FontAwesome6 name="camera-rotate" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
       </Camera>
