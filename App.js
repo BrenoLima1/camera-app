@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {TouchableOpacity, Button, SafeAreaView, StyleSheet, Text, View, Modal, Image } from 'react-native';
 import { Camera } from 'expo-camera';
-import { Ionicons, FontAwesome, FontAwesome6 } from '@expo/vector-icons';
+import { FontAwesome, FontAwesome6 } from '@expo/vector-icons';
 import * as MediaLibrary from 'expo-media-library';
 
 export default function App() {
