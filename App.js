@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {TouchableOpacity, SafeAreaView, StyleSheet, Text, View, Modal, Image } from 'react-native';
 import { Camera } from 'expo-camera';
-import { FontAwesome, FontAwesome6 } from '@expo/vector-icons';
+import { FontAwesome, FontAwesome6, Ionicons } from '@expo/vector-icons';
 import * as MediaLibrary from 'expo-media-library';
 import { Alert } from 'react-native';
 
@@ -10,6 +10,7 @@ export default function App() {
   const camRef = useRef(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
   const [hasPermission, setHasPermission] = useState(null);
+  const [flashMode, setFlashMode] = useState(Camera.Constants.FlashMode.off);
   const [capturesPhoto, setCapturedPhoto] = useState(null);
   const [open, setOpen] = useState(false);
 
@@ -79,6 +80,7 @@ export default function App() {
     <SafeAreaView style={styles.container}>
       <Camera style={{flex:1}}
       type={type}
+      flashMode={flashMode}
       ref={camRef}
       >
         <View style = {{flex: 1, backgroundColor: 'transparent', flexDirection: 'row'}}>
@@ -99,6 +101,23 @@ export default function App() {
           >
             <FontAwesome6 name="camera-rotate" size={24} color="#fff" />
           </TouchableOpacity>
+          <TouchableOpacity
+  style = {{
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+  }}
+  onPress={ () => {
+    setFlashMode(
+      flashMode === Camera.Constants.FlashMode.off
+      ? Camera.Constants.FlashMode.on
+      : Camera.Constants.FlashMode.off
+    );
+  } }
+>
+  <Ionicons name={flashMode === Camera.Constants.FlashMode.on ? "flash" : "flash-off"} size={24} color="#fff" />
+</TouchableOpacity>
+
         </View>
       </Camera>
       <TouchableOpacity style = {styles.button} onPress={takePicture}>
