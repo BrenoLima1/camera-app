@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useRef} from 'react';
-import {TouchableOpacity, SafeAreaView, StyleSheet, Text, View, Modal, Image } from 'react-native';
+import {TouchableOpacity, SafeAreaView, StyleSheet, Text, View, Modal, Image, FlatList } from 'react-native';
 import { Camera } from 'expo-camera';
 import { FontAwesome, FontAwesome6, Ionicons } from '@expo/vector-icons';
 import * as MediaLibrary from 'expo-media-library';
@@ -11,8 +11,10 @@ export default function App() {
   const [type, setType] = useState(Camera.Constants.Type.back);
   const [hasPermission, setHasPermission] = useState(null);
   const [flashMode, setFlashMode] = useState(Camera.Constants.FlashMode.off);
-  const [capturesPhoto, setCapturedPhoto] = useState(null);
+  const [displayedImage, setDisplayedImage] = useState(null);
   const [open, setOpen] = useState(false);
+  const [images, setImages] = useState([]);
+  const [showImages, setShowImages] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -37,10 +39,11 @@ export default function App() {
     return <Text>Acesso negado!</Text>
   }
 
+
   async function takePicture() {
     if(camRef){
       const data = await camRef.current.takePictureAsync();
-      setCapturedPhoto(data.uri);
+      setDisplayedImage(data.uri);
       setOpen(true);
       console.log(data);
     }
@@ -60,19 +63,31 @@ export default function App() {
                   text: "OK",
                   onPress: async () => {
                       try{
-                          await MediaLibrary.saveToLibraryAsync(capturesPhoto)
+                          await MediaLibrary.saveToLibraryAsync(displayedImage)
                           alert('Foto salva com sucesso!');
                       }catch(err){
                           alert('Erro ao salvar a foto: ' + err.message)
                           console.log('Erro ao salvar a foto: ' + err.message)
                       }finally{
                           setOpen(false);
-                          setCapturedPhoto(null);
+                          setDisplayedImage(null);
                       }
                   }
               }
           ]
       );
+  }
+
+  async function loadImages() {
+    const { status } = await MediaLibrary.requestPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Perdão, precisamos de acesso à galeria para exibir as imagens!');
+      return;
+    }
+
+    const { assets } = await MediaLibrary.getAssetsAsync();
+    setImages(assets);
+    setShowImages(true);
   }
 
 
@@ -123,8 +138,25 @@ export default function App() {
       <TouchableOpacity style = {styles.button} onPress={takePicture}>
           <FontAwesome name='camera' size={23} color = '#fff'></FontAwesome>
       </TouchableOpacity>
+      <TouchableOpacity style = {styles.button} onPress={loadImages}>
+          <Text style={{ color: '#fff' }}>Carregar imagens</Text>
+      </TouchableOpacity>
+      {showImages &&
+  <FlatList
+    data={images}
+    keyExtractor={item => item.id}
+    numColumns={3}
+    renderItem={({ item }) => (
+      <TouchableOpacity onPress={() => {setDisplayedImage(item.uri); setOpen(true); setShowImages(false);}}>
+  <Image source={{ uri: item.uri }} style={{ width: 100, height: 100 }} />
+</TouchableOpacity>
 
-      {capturesPhoto &&
+    )}
+  />
+}
+
+
+      {displayedImage &&
         <Modal
         animationType='slide'
         transparent= {false}
@@ -142,7 +174,7 @@ export default function App() {
             </TouchableOpacity>
             </View>
 
-            <Image source={{uri: capturesPhoto}} style={{width: '100%', height: 450, borderRadius: 20}} />
+            <Image source={{uri: displayedImage}} style={{width: '100%', height: 450, borderRadius: 20}}onPress={ ()=> setOpen(false)} />
           </View>
         </Modal>
 
@@ -162,7 +194,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#121212",
     justifyContent: 'center',
     borderRadius: 10,
-    margin: 20,
+    margin: 10,
     borderRadius: 10,
     height: 50,
     width: '80%'
