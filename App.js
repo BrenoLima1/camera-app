@@ -8,6 +8,7 @@ import {
   Modal,
   Image,
   FlatList,
+  Dimensions,
 } from "react-native";
 import { Camera } from "expo-camera";
 import { FontAwesome, FontAwesome6, Ionicons } from "@expo/vector-icons";
@@ -23,6 +24,7 @@ export default function App() {
   const [open, setOpen] = useState(false);
   const [images, setImages] = useState([]);
   const [showImages, setShowImages] = useState(false);
+  const imageMargin = (Dimensions.get('window').width - (3 * 100)) / 6;
 
   useEffect(() => {
     (async () => {
@@ -165,24 +167,24 @@ export default function App() {
 
       {showImages && (
         <FlatList
-          data={images}
-          keyExtractor={(item) => item.id}
-          numColumns={3}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => {
-                setDisplayedImage(item.uri);
-                setOpen(true);
-                setShowImages(false);
-              }}
-            >
-              <Image
-                source={{ uri: item.uri }}
-                style={{ width: 100, height: 100 }}
-              />
-            </TouchableOpacity>
-          )}
-        />
+        data={images}
+        keyExtractor={(item) => item.id}
+        numColumns={3}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() => {
+              setDisplayedImage(item.uri);
+              setOpen(true);
+              setShowImages(false);
+            }}
+          >
+            <Image
+              source={{ uri: item.uri }}
+              style={{ width: 100, height: 100 , margin: imageMargin}}
+            />
+          </TouchableOpacity>
+        )}
+      />
       )}
 
       {displayedImage && (
